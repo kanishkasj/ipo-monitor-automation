@@ -1,8 +1,13 @@
+# .github/workflows/ipo_monitor.yml
+
 name: IPO Monitor Automation
+
 on:
+  # Run daily at 9:00 AM Dubai time (UTC+4) = 05:00 UTC
   schedule:
     - cron: '0 5 * * *'
   
+  # Allow manual trigger for testing
   workflow_dispatch:
 
 jobs:
@@ -24,7 +29,7 @@ jobs:
       
       - name: Run IPO Monitor
         env:
-          FMP_API_KEY: ${{ secrets.FMP_API_KEY }}
+          FINNHUB_API_KEY: ${{ secrets.FINNHUB_API_KEY }}
           EMAIL_SENDER: ${{ secrets.EMAIL_SENDER }}
           EMAIL_PASSWORD: ${{ secrets.EMAIL_PASSWORD }}
           EMAIL_RECEIVER: ${{ secrets.EMAIL_RECEIVER }}

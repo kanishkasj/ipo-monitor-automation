@@ -7,7 +7,7 @@ from datetime import datetime
 import os
 
 # ============== CONFIGURATION ==============
-FMP_API_KEY = os.environ.get("FMP_API_KEY")  # Get free key at financialmodelingprep.com
+FINNHUB_API_KEY = os.environ.get("FINNHUB_API_KEY")  # Get free key at finnhub.io
 EMAIL_SENDER = os.environ.get("EMAIL_SENDER")
 EMAIL_PASSWORD = os.environ.get("EMAIL_PASSWORD")  # Gmail App Password
 EMAIL_RECEIVER = os.environ.get("EMAIL_RECEIVER")
@@ -15,14 +15,15 @@ OFFER_AMOUNT_THRESHOLD = 200_000_000  # USD 200 million
 
 # ============== FETCH IPO DATA ==============
 def get_todays_ipos():
-    """Fetch IPOs from Financial Modeling Prep API"""
+    """Fetch IPOs from Finnhub API"""
     today = datetime.now().strftime("%Y-%m-%d")
     
-    url = f"https://financialmodelingprep.com/api/v3/ipo_calendar?from={today}&to={today}&apikey={FMP_API_KEY}"
+    url = f"https://finnhub.io/api/v1/calendar/ipo?from={today}&to={today}&token={FINNHUB_API_KEY}"
     
     response = requests.get(url)
     if response.status_code == 200:
-        return response.json()
+        data = response.json()
+        return data.get("ipoCalendar", [])
     else:
         print(f"Error fetching IPO data: {response.status_code}")
         return []
@@ -34,7 +35,7 @@ def filter_large_ipos(ipos):
     
     for ipo in ipos:
         # Calculate offer amount: IPO price × shares offered
-        price = ipo.get("priceRange") or ipo.get("price") or 0
+        price = ipo.get("price") or 0
         shares = ipo.get("numberOfShares") or 0
         
         # Handle price range (e.g., "15-17" -> take midpoint)
@@ -50,7 +51,7 @@ def filter_large_ipos(ipos):
         if offer_amount >= OFFER_AMOUNT_THRESHOLD:
             qualifying_ipos.append({
                 "symbol": ipo.get("symbol"),
-                "company": ipo.get("company"),
+                "company": ipo.get("name"),
                 "date": ipo.get("date"),
                 "price": price,
                 "shares": shares,
